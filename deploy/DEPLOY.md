@@ -2,7 +2,7 @@
 
 Ниже — схема для **Ubuntu 22.04 LTS** (или новее): один сервер, **Nginx** отдаёт статику фронта и проксирует `/api` и `/uploads` на **Uvicorn** за `127.0.0.1:8000`. **MongoDB** — отдельно (MongoDB Atlas или свой инстанс).
 
-Пути в примерах: `/opt/paradigma`. Репозиторий: `https://github.com/paladiandrew/Paradigma.git`
+Пути в примерах: `/opt/paradigma`. Домен продакшена: **paradigma-bjj.ru**. Репозиторий: `https://github.com/paladiandrew/Paradigma.git`
 
 ---
 
@@ -81,9 +81,9 @@ sudo chmod 600 .env
 | `MONGO_URI` | строка подключения к MongoDB |
 | `DATABASE_NAME` | имя БД |
 | `JWT_SECRET` | длинная случайная строка |
-| `FRONTEND_URL` | `https://ВАШ_ДОМЕН` |
-| `CORS_ORIGINS` | `["https://ВАШ_ДОМЕН"]` — JSON-массив строк |
-| `YOOKASSA_RETURN_URL` | `https://ВАШ_ДОМЕН/tariffs` (если платежи) |
+| `FRONTEND_URL` | `https://paradigma-bjj.ru` |
+| `CORS_ORIGINS` | `["https://paradigma-bjj.ru"]` — JSON-массив строк |
+| `YOOKASSA_RETURN_URL` | `https://paradigma-bjj.ru/tariffs` (если платежи) |
 
 Каталог загрузок должен быть доступен для записи пользователю сервиса:
 
@@ -111,7 +111,7 @@ curl -s http://127.0.0.1:8000/health
 ```bash
 cd /opt/paradigma/frontend
 npm ci
-VITE_API_URL=https://ВАШ_ДОМЕН npm run build
+VITE_API_URL=https://paradigma-bjj.ru npm run build
 ```
 
 Проверьте, что появился `frontend/dist/`.
@@ -120,12 +120,12 @@ VITE_API_URL=https://ВАШ_ДОМЕН npm run build
 
 ## 6. Nginx
 
-1. Скопируйте пример и подставьте домен:
+1. Скопируйте конфиг (в репозитории уже указан `paradigma-bjj.ru`):
 
 ```bash
 sudo cp /opt/paradigma/deploy/nginx-paradigma.conf /etc/nginx/sites-available/paradigma
 sudo nano /etc/nginx/sites-available/paradigma
-# Замените YOUR_DOMAIN на реальный домен (и при необходимости путь root, если не /opt/paradigma/frontend/dist)
+# при необходимости поправьте root, если dist не в /opt/paradigma/frontend/dist
 ```
 
 2. Включите сайт:
@@ -139,7 +139,7 @@ sudo nginx -t && sudo systemctl reload nginx
 3. **HTTPS:**
 
 ```bash
-sudo certbot --nginx -d ВАШ_ДОМЕН
+sudo certbot --nginx -d paradigma-bjj.ru -d www.paradigma-bjj.ru
 ```
 
 После выдачи сертификата в блоке `server` для порта 80 Certbot обычно добавит редирект на HTTPS. Убедитесь, что во **frontend** при **следующей** пересборке `VITE_API_URL` указывает на `https://...`.
@@ -148,8 +148,8 @@ sudo certbot --nginx -d ВАШ_ДОМЕН
 
 ## 7. Проверки
 
-- Откройте в браузере `https://ВАШ_ДОМЕН` — главная SPA.
-- `https://ВАШ_ДОМЕН/api/v1/...` — прокси на FastAPI (например документация может быть недоступна если роут не открыт; проверьте `/health` через Nginx или напрямую `curl http://127.0.0.1:8000/health` на сервере).
+- Откройте в браузере `https://paradigma-bjj.ru` — главная SPA.
+- `https://paradigma-bjj.ru/api/v1/...` — прокси на FastAPI; проверьте `/health` через Nginx или `curl http://127.0.0.1:8000/health` на сервере.
 - Вход в ЛК, загрузка картинок — проверка `/uploads/`.
 
 ---
@@ -161,7 +161,7 @@ cd /opt/paradigma
 git pull
 cd backend && source .venv/bin/activate && pip install -r requirements.txt && deactivate
 sudo systemctl restart paradigma-api
-cd ../frontend && npm ci && VITE_API_URL=https://ВАШ_ДОМЕН npm run build
+cd ../frontend && npm ci && VITE_API_URL=https://paradigma-bjj.ru npm run build
 sudo systemctl reload nginx
 ```
 

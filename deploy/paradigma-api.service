@@ -1,0 +1,29 @@
+# systemd-юнит для Uvicorn (FastAPI).
+# Пути по умолчанию: /opt/paradigma/backend
+#
+#   sudo cp deploy/paradigma-api.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now paradigma-api
+#   sudo systemctl status paradigma-api
+#
+# Пользователь www-data должен иметь право писать в backend/uploads (аватары, новости).
+
+[Unit]
+Description=Paradigma BJJ API (Uvicorn)
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/paradigma/backend
+# Переменные читаются приложением из backend/.env (pydantic-settings)
+ExecStart=/opt/paradigma/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=5
+
+# Безопасность (опционально)
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

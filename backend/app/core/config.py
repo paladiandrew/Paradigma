@@ -12,7 +12,13 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
     FRONTEND_URL: str = "http://localhost:5173"
-    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
+    # localhost и 127.0.0.1 для браузера — разные Origin; в dev часто открывают Vite по IP.
+    CORS_ORIGINS: list[str] = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
 
     # Вход в админку с /login: логин = email или телефон пользователя с role=admin в MongoDB
     ADMIN_LOGIN: Optional[str] = None

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Box, Container, Typography, Button, Card, CardContent } from '@mui/material'
-import Grid from '@mui/material/GridLegacy'
+import { Box, Container, Typography, Button, Card, CardContent, Link as MuiLink } from '@mui/material'
+import Grid from '@mui/material/Grid'
 import TariffsPreview from '../components/home/TariffsPreview'
 import TrainersSection from '../components/home/TrainersSection'
 import PromotionsSection from '../components/home/PromotionsSection'
@@ -86,7 +86,7 @@ export default function HomePage() {
               { emoji: '📅', title: 'Гибкое расписание', text: 'Занятия в удобное время для всех уровней подготовки' },
               { emoji: '🏆', title: 'Подготовка к соревнованиям', text: 'Специальные программы для участия в турнирах' },
             ].map((item, i) => (
-              <Grid item xs={12} md={4} sx={{ display: 'flex' }} key={item.title}>
+              <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex' }} key={item.title}>
                 <RevealWrapper threshold={0.12} delayMs={i * 100}>
                   <Card sx={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
                     <CardContent
@@ -124,7 +124,7 @@ export default function HomePage() {
         <Container>
           <SectionTitle title="Об академии" />
           <Grid container spacing={{ xs: 2.5, md: 3 }} alignItems="flex-start">
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <RevealWrapper threshold={0.12}>
                 <Card sx={{ height: '100%' }}>
                   <CardContent sx={{ pt: { xs: 1.25, sm: 1.5 }, pb: { xs: 2, sm: 2.5 }, px: { xs: 2, sm: 2.5 } }}>
@@ -140,7 +140,7 @@ export default function HomePage() {
                 </Card>
               </RevealWrapper>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <RevealWrapper threshold={0.12} delayMs={100}>
                 <Card sx={{ height: '100%' }}>
                   <CardContent sx={{ pt: { xs: 1.25, sm: 1.5 }, pb: { xs: 2, sm: 2.5 }, px: { xs: 2, sm: 2.5 } }}>
@@ -149,11 +149,13 @@ export default function HomePage() {
                     </Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                       <Typography variant="body2" color="text.secondary">
-                        <strong>Адрес:</strong> г. Москва, ул. Примерная, д. 123
+                        <strong>ЖК «Южная Битца»</strong>
+                        <br />
+                        ул. Южный бульвар, д. 4
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        <strong>Телефон:</strong> +7 (XXX) XXX-XX-XX
-                      </Typography>
+                      <MuiLink href="tel:+79362999933" color="secondary" underline="hover" variant="body2" fontWeight={600}>
+                        +7 (936) 299-99-33
+                      </MuiLink>
                       <Typography variant="body2" color="text.secondary">
                         <strong>Email:</strong> info@paradigma-bjj.ru
                       </Typography>

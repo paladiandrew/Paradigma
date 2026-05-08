@@ -24,7 +24,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material'
-import Grid from '@mui/material/GridLegacy'
+import Grid from '@mui/material/Grid'
 import { alpha } from '@mui/material/styles'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import {
@@ -32,10 +32,13 @@ import {
   MARKETING_CARD_SHADOW_HOVER,
   MARKETING_CARD_TRANSITION,
 } from '../styles/marketingCards'
+import TariffHeaderWave from '../components/tariffs/TariffHeaderWave'
+import TariffLeftAccent from '../components/tariffs/TariffLeftAccent'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { useAuth } from '../contexts/AuthContext'
 import api, { getApiErrorMessage } from '../services/api'
+import { parseApiCalendarDate, dateInputToIsoNoon, isDiscountCalendarDateStillValid } from '../utils/formatDates'
 
 type TariffPlan = {
   id: string
@@ -76,8 +79,7 @@ function normalizeTariffRow(raw: Record<string, unknown>): TariffPlan {
 function discountActive(t: TariffPlan): boolean {
   const p = t.discount_percent || 0
   if (p <= 0) return false
-  if (!t.discount_until) return true
-  return new Date(t.discount_until).getTime() > Date.now()
+  return isDiscountCalendarDateStillValid(t.discount_until)
 }
 
 function effectivePrice(t: TariffPlan): number {
@@ -86,28 +88,14 @@ function effectivePrice(t: TariffPlan): number {
 }
 
 function ageFromBirth(iso: string | null | undefined): string | null {
-  if (!iso) return null
-  const b = new Date(iso)
-  if (Number.isNaN(b.getTime())) return null
+  const b = parseApiCalendarDate(iso || null)
+  if (!b) return null
   const y = Math.floor((Date.now() - b.getTime()) / (365.25 * 24 * 3600 * 1000))
   return `${y} лет`
 }
 
 function initials(first: string, last: string) {
   return `${(first || '?').slice(0, 1)}${(last || '').slice(0, 1)}`.toUpperCase()
-}
-
-function HeaderWave() {
-  return (
-    <Box
-      component="svg"
-      viewBox="0 0 400 32"
-      preserveAspectRatio="none"
-      sx={{ display: 'block', width: '100%', height: 28, mt: 1 }}
-    >
-      <path fill="#ffffff" d="M0,12 Q100,28 200,14 T400,12 L400,32 L0,32 Z" />
-    </Box>
-  )
 }
 
 function TariffDescriptionBlock({ text, accent }: { text: string; accent: 'secondary' | 'warning' }) {
@@ -204,10 +192,8 @@ function TariffPlanCard({
   const eff = effectivePrice(tariff)
   const headerBg = disc ? '#E65100' : '#1a1a1a'
   const accentColor = disc ? 'warning' : 'secondary'
-  const needsTopBadgeSpace = pop || disc
 
   const bulletColor = disc ? 'warning.main' : 'secondary.main'
-  const leftAccentInset = disc ? '' : `, inset 4px 0 0 ${theme.palette.secondary.main}`
 
   return (
     <Box
@@ -216,7 +202,8 @@ function TariffPlanCard({
         width: '100%',
         maxWidth: '100%',
         minWidth: 0,
-        pt: needsTopBadgeSpace ? 2.5 : 0,
+        /* Единый отступ сверху — без смещения «популярных» относительно остальных в сетке */
+        pt: 2.5,
         overflow: 'visible',
         position: 'relative',
         isolation: 'isolate',
@@ -277,19 +264,19 @@ function TariffPlanCard({
                 border: '1px solid',
                 borderColor: 'divider',
               }),
-          boxShadow: pop
-            ? `${MARKETING_CARD_SHADOW}, 0 6px 20px ${alpha(theme.palette.secondary.main, 0.12)}${leftAccentInset}`
-            : disc
-              ? `0 4px 20px rgba(0,0,0,0.08), 0 8px 24px ${alpha(theme.palette.warning.main, 0.15)}`
-              : `${MARKETING_CARD_SHADOW}${leftAccentInset}`,
+          boxShadow: disc
+            ? `0 4px 20px rgba(0,0,0,0.08), 0 8px 24px ${alpha(theme.palette.warning.main, 0.15)}`
+            : pop
+              ? `${MARKETING_CARD_SHADOW}, 0 6px 20px ${alpha(theme.palette.secondary.main, 0.12)}`
+              : MARKETING_CARD_SHADOW,
           bgcolor: '#fff',
           '&:hover': {
             transform: 'translateY(-8px)',
-            boxShadow: pop
-              ? `${MARKETING_CARD_SHADOW_HOVER}, 0 12px 28px ${alpha(theme.palette.secondary.main, 0.18)}${leftAccentInset}`
-              : disc
-                ? `${MARKETING_CARD_SHADOW_HOVER}, 0 12px 28px ${alpha(theme.palette.warning.main, 0.2)}`
-                : `${MARKETING_CARD_SHADOW_HOVER}${leftAccentInset}`,
+            boxShadow: disc
+              ? `${MARKETING_CARD_SHADOW_HOVER}, 0 12px 28px ${alpha(theme.palette.warning.main, 0.2)}`
+              : pop
+                ? `${MARKETING_CARD_SHADOW_HOVER}, 0 12px 28px ${alpha(theme.palette.secondary.main, 0.18)}`
+                : MARKETING_CARD_SHADOW_HOVER,
           },
           ...(focusId === tariff.id && {
             outline: `3px solid ${disc ? theme.palette.warning.main : theme.palette.secondary.main}`,
@@ -299,12 +286,21 @@ function TariffPlanCard({
             focusId === tariff.id && {
               animation: 'tariffFocusPulse 1.5s ease-out 2',
               '@keyframes tariffFocusPulse': {
-                '0%': { boxShadow: `0 0 0 0 ${alpha(theme.palette.secondary.main, 0.55)}` },
-                '100%': { boxShadow: `0 0 0 14px ${alpha(theme.palette.secondary.main, 0)}` },
+                '0%': {
+                  boxShadow: disc
+                    ? `0 0 0 0 ${alpha(theme.palette.warning.main, 0.55)}`
+                    : `0 0 0 0 ${alpha(theme.palette.secondary.main, 0.55)}`,
+                },
+                '100%': {
+                  boxShadow: disc
+                    ? `0 0 0 14px ${alpha(theme.palette.warning.main, 0)}`
+                    : `0 0 0 14px ${alpha(theme.palette.secondary.main, 0)}`,
+                },
               },
             }),
         }}
       >
+        {!disc && <TariffLeftAccent />}
         {disc && (
           <Box
             sx={{
@@ -340,13 +336,11 @@ function TariffPlanCard({
             pt: pop ? 4 : 2.5,
             px: 2.5,
             pb: 0,
-            borderRadius: '24px 24px 0 0',
             position: 'relative',
             textAlign: 'center',
             alignItems: 'center',
             display: 'flex',
             flexDirection: 'column',
-            ...(pop && { transform: 'translateY(-8px)' }),
           }}
         >
           <Typography
@@ -380,10 +374,10 @@ function TariffPlanCard({
               ₽/мес
             </Typography>
           </Box>
-          <HeaderWave />
+          <TariffHeaderWave />
         </Box>
 
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', bgcolor: '#fff', px: 3, pt: 3, pb: 0 }}>
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', bgcolor: '#fff', px: 3, pt: 1.5, pb: 0 }}>
           <TariffDescriptionBlock text={tariff.description || ''} accent={accentColor} />
 
           <Box sx={{ mb: 2, flex: 1 }}>
@@ -551,12 +545,12 @@ export default function TariffsPage() {
       first_name: addForm.first_name,
       last_name: addForm.last_name,
       phone: addForm.phone || undefined,
-      birth_date: addForm.birth_date ? new Date(addForm.birth_date).toISOString() : undefined,
+      birth_date: dateInputToIsoNoon(addForm.birth_date),
     })
     setAddOpen(false)
     setAddForm({ first_name: '', last_name: '', phone: '', birth_date: '' })
     await refreshSubProfiles()
-    toast.success('Подпрофиль добавлен')
+    toast.success('Связанный профиль добавлен')
   }
 
   const createPayment = async () => {
@@ -670,10 +664,7 @@ export default function TariffsPage() {
               {[1, 2, 3].map((i) => (
                 <Grid
                   key={i}
-                  item
-                  xs={12}
-                  sm={6}
-                  md={4}
+                  size={{ xs: 12, sm: 6, md: 4 }}
                   sx={{ display: 'flex', justifyContent: 'center', minWidth: 0, maxWidth: '100%' }}
                 >
                   <Skeleton variant="rounded" animation="pulse" height={500} sx={{ borderRadius: 3, width: '100%' }} />
@@ -721,10 +712,7 @@ export default function TariffsPage() {
               >
                 {tariffs.map((tariff) => (
                   <Grid
-                    item
-                    xs={12}
-                    sm={6}
-                    md={4}
+                    size={{ xs: 12, sm: 6, md: 4 }}
                     key={tariff.id}
                     sx={{
                       minWidth: 0,
@@ -814,7 +802,7 @@ export default function TariffsPage() {
             onClick={() => setAddOpen(true)}
             sx={{ mt: 2, display: 'inline-block', cursor: 'pointer' }}
           >
-            + Добавить ребёнка / подпрофиль
+            + Добавить связанный профиль
           </Link>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
@@ -826,7 +814,7 @@ export default function TariffsPage() {
       </Dialog>
 
       <Dialog open={addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="xs" fullScreen={isPhone}>
-        <DialogTitle>Новый подпрофиль</DialogTitle>
+        <DialogTitle>Новый связанный профиль</DialogTitle>
         <DialogContent sx={{ display: 'grid', gap: 2, pt: 2 }}>
           <TextField label="Имя *" value={addForm.first_name} onChange={(e) => setAddForm((f) => ({ ...f, first_name: e.target.value }))} />
           <TextField label="Фамилия *" value={addForm.last_name} onChange={(e) => setAddForm((f) => ({ ...f, last_name: e.target.value }))} />

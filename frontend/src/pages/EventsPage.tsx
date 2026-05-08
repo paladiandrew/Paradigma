@@ -8,6 +8,7 @@ import {
 } from '@mui/material'
 import { useEffect, useMemo, useState } from 'react'
 import api from '../services/api'
+import { formatRuCalendarDate, parseApiCalendarDate } from '../utils/formatDates'
 
 export default function EventsPage() {
   const [events, setEvents] = useState<any[]>([])
@@ -15,7 +16,15 @@ export default function EventsPage() {
     api.get('/events', { params: { type: 'news' } }).then((res) => setEvents(res.data || []))
   }, [])
 
-  const normalized = useMemo(() => [...events].sort((a, b) => +new Date(b.date) - +new Date(a.date)), [events])
+  const normalized = useMemo(
+    () =>
+      [...events].sort(
+        (a, b) =>
+          (parseApiCalendarDate(b.date)?.getTime() ?? 0) -
+          (parseApiCalendarDate(a.date)?.getTime() ?? 0),
+      ),
+    [events],
+  )
 
   return (
     <Box
@@ -101,11 +110,7 @@ export default function EventsPage() {
                     color="text.secondary"
                     sx={{ fontSize: { xs: '0.95rem', md: '1.05rem' } }}
                   >
-                    {new Date(event.date).toLocaleDateString('ru-RU', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
-                    })}
+                    {formatRuCalendarDate(event.date)}
                   </Typography>
                 </Box>
                 <Typography
@@ -121,6 +126,21 @@ export default function EventsPage() {
                 >
                   {event.title}
                 </Typography>
+                {event.imageUrl ? (
+                  <Box
+                    component="img"
+                    src={event.imageUrl}
+                    alt={event.title ? `Иллюстрация: ${event.title}` : ''}
+                    sx={{
+                      display: 'block',
+                      width: '100%',
+                      maxHeight: { xs: 280, sm: 360, md: 420 },
+                      objectFit: 'cover',
+                      borderRadius: 2,
+                      mb: { xs: 2, md: 2.5 },
+                    }}
+                  />
+                ) : null}
                 <Typography
                   color="text.secondary"
                   paragraph
@@ -143,9 +163,9 @@ export default function EventsPage() {
                       fontSize: { xs: '0.95rem', md: '1.02rem' },
                     }}
                   >
-                    {+new Date(event.endDate) < Date.now()
+                    {(parseApiCalendarDate(event.endDate)?.getTime() ?? 0) < Date.now()
                       ? 'Период завершён'
-                      : `По: ${new Date(event.endDate).toLocaleDateString('ru-RU')}`}
+                      : `По: ${formatRuCalendarDate(event.endDate)}`}
                   </Typography>
                 )}
               </CardContent>

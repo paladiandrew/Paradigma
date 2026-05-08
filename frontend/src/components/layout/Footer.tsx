@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Box, Container, Typography, Link as MuiLink } from '@mui/material'
-import Grid from '@mui/material/GridLegacy'
+import Grid from '@mui/material/Grid'
 
 export default function Footer() {
   return (
@@ -16,7 +16,7 @@ export default function Footer() {
     >
       <Container>
         <Grid container spacing={4}>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>
               PARADIGMA BJJ
             </Typography>
@@ -25,7 +25,7 @@ export default function Footer() {
             </Typography>
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Typography variant="subtitle1" fontWeight="semibold" gutterBottom>
               Навигация
             </Typography>
@@ -45,19 +45,51 @@ export default function Footer() {
             </Box>
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Typography variant="subtitle1" fontWeight="semibold" gutterBottom>
               Контакты
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               <Typography variant="body2" color="grey.400">
-                Телефон: +7 (XXX) XXX-XX-XX
+                ЖК «Южная Битца»
+                <br />
+                ул. Южный бульвар, д. 4
+              </Typography>
+              <MuiLink href="tel:+79362999933" color="grey.400" sx={{ '&:hover': { color: 'white' } }}>
+                +7 (936) 299-99-33
+              </MuiLink>
+              <Typography variant="body2" color="grey.400">
+                <strong>Email:</strong> info@paradigma-bjj.ru
               </Typography>
               <Typography variant="body2" color="grey.400">
-                Email: info@paradigma-bjj.ru
+                <strong>Режим работы:</strong> Пн-Вс: 9:00 - 22:00
               </Typography>
-              <MuiLink href="#" color="grey.400" sx={{ '&:hover': { color: 'white' } }}>
-                Социальные сети
+              <MuiLink
+                href="https://www.instagram.com/paradigma_jj?igsh=MWswZjA4dTYzY3BjMg=="
+                target="_blank"
+                rel="noopener noreferrer"
+                color="grey.400"
+                sx={{ '&:hover': { color: 'white' } }}
+              >
+                Instagram
+              </MuiLink>
+              <MuiLink
+                href="https://t.me/chersibjj"
+                target="_blank"
+                rel="noopener noreferrer"
+                color="grey.400"
+                sx={{ '&:hover': { color: 'white' } }}
+              >
+                Telegram
+              </MuiLink>
+              <MuiLink
+                href="https://chat.whatsapp.com/FXEPOvUlzOFJqiuwJbVqLr"
+                target="_blank"
+                rel="noopener noreferrer"
+                color="grey.400"
+                sx={{ '&:hover': { color: 'white' } }}
+              >
+                WhatsApp
               </MuiLink>
             </Box>
           </Grid>
@@ -73,7 +105,7 @@ export default function Footer() {
           }}
         >
           <Typography variant="body2" color="grey.400">
-            © 2025 Paradigma BJJ. Все права защищены.
+            © {new Date().getFullYear()} Paradigma BJJ. Все права защищены.
           </Typography>
         </Box>
       </Container>

@@ -3,6 +3,9 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import SellIcon from '@mui/icons-material/Sell'
 import { Box, Button, Card, Chip, Typography } from '@mui/material'
 import { MARKETING_CARD_SHADOW, MARKETING_CARD_TRANSITION } from '../../styles/marketingCards'
+import TariffHeaderWave from '../tariffs/TariffHeaderWave'
+import TariffLeftAccent from '../tariffs/TariffLeftAccent'
+import { isDiscountCalendarDateStillValid } from '../../utils/formatDates'
 
 type PreviewTariff = {
   name: string
@@ -18,8 +21,7 @@ type PreviewTariff = {
 function discountActive(t: PreviewTariff): boolean {
   const p = t.discount_percent || 0
   if (p <= 0) return false
-  if (!t.discount_until) return true
-  return new Date(t.discount_until).getTime() > Date.now()
+  return isDiscountCalendarDateStillValid(t.discount_until)
 }
 
 function effectivePrice(t: PreviewTariff): number {
@@ -27,20 +29,6 @@ function effectivePrice(t: PreviewTariff): number {
   return Math.max(0, Math.round((t.price * (100 - (t.discount_percent || 0))) / 100))
 }
 
-function HeaderWave() {
-  return (
-    <Box
-      component="svg"
-      viewBox="0 0 400 32"
-      preserveAspectRatio="none"
-      sx={{ display: 'block', width: '100%', height: 28, mt: 1 }}
-    >
-      <path fill="#ffffff" d="M0,12 Q100,28 200,14 T400,12 L400,32 L0,32 Z" />
-    </Box>
-  )
-}
-
-/** Упрощённая карточка как на главной (TariffsPreview). */
 export function TariffPreviewHomeStyle({ tariff }: { tariff: PreviewTariff }) {
   const disc = discountActive(tariff)
   const eff = effectivePrice(tariff)
@@ -49,7 +37,7 @@ export function TariffPreviewHomeStyle({ tariff }: { tariff: PreviewTariff }) {
   const showRecommend = tariff.popular && !disc
 
   return (
-    <Box sx={{ position: 'relative', height: '100%', pt: showRecommend ? 2.5 : 0, maxWidth: 360, mx: 'auto' }}>
+    <Box sx={{ position: 'relative', height: '100%', pt: 2.5, maxWidth: 360, mx: 'auto' }}>
       {showRecommend && (
         <Box
           sx={{
@@ -77,8 +65,13 @@ export function TariffPreviewHomeStyle({ tariff }: { tariff: PreviewTariff }) {
         sx={{
           borderRadius: 3,
           overflow: 'hidden',
-          borderLeft: '4px solid',
-          borderColor: disc ? 'warning.main' : 'secondary.main',
+          position: 'relative',
+          ...(disc
+            ? { border: '2px solid', borderColor: 'warning.main' }
+            : {
+                border: '1px solid',
+                borderColor: 'divider',
+              }),
           boxShadow: MARKETING_CARD_SHADOW,
           bgcolor: '#fff',
           display: 'flex',
@@ -86,9 +79,9 @@ export function TariffPreviewHomeStyle({ tariff }: { tariff: PreviewTariff }) {
           transition: MARKETING_CARD_TRANSITION,
         }}
       >
+        {!disc && <TariffLeftAccent />}
         <Box
           sx={{
-            minHeight: 140,
             bgcolor: headerBg,
             color: '#fff',
             px: 2.5,
@@ -98,8 +91,6 @@ export function TariffPreviewHomeStyle({ tariff }: { tariff: PreviewTariff }) {
             flexDirection: 'column',
             alignItems: 'center',
             textAlign: 'center',
-            borderRadius: '24px 24px 0 0',
-            ...(showRecommend && { transform: 'translateY(-8px)' }),
           }}
         >
           <Typography variant="h6" fontWeight={800} sx={{ mb: 1, lineHeight: 1.25 }}>
@@ -116,9 +107,9 @@ export function TariffPreviewHomeStyle({ tariff }: { tariff: PreviewTariff }) {
           <Typography variant="caption" sx={{ color: disc ? 'rgba(255,255,255,0.85)' : 'grey.400', mt: 0.5 }}>
             ₽/мес
           </Typography>
-          <HeaderWave />
+          <TariffHeaderWave />
         </Box>
-        <Box sx={{ flex: 1, bgcolor: '#fff', px: 2, py: 1.5, display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ flex: 1, bgcolor: '#fff', px: 2, pt: 1.25, pb: 1.5, display: 'flex', flexDirection: 'column' }}>
           {tariff.description?.trim() ? (
             <Typography
               sx={{
@@ -174,12 +165,11 @@ export function TariffPreviewPageStyle({ tariff }: { tariff: PreviewTariff }) {
   const eff = effectivePrice(tariff)
   const headerBg = disc ? '#E65100' : '#1a1a1a'
   const accentColor = disc ? 'warning' : 'secondary'
-  const needsTop = pop || disc
   const feats = (tariff.features || []).filter(Boolean)
   const bonuses = (tariff.bonuses || []).filter(Boolean)
 
   return (
-    <Box sx={{ height: '100%', pt: needsTop ? 2.5 : 0, position: 'relative', maxWidth: 400, mx: 'auto' }}>
+    <Box sx={{ height: '100%', pt: 2.5, position: 'relative', maxWidth: 400, mx: 'auto' }}>
       {pop && (
         <Chip
           label="Рекомендуем"
@@ -216,29 +206,32 @@ export function TariffPreviewPageStyle({ tariff }: { tariff: PreviewTariff }) {
         sx={{
           borderRadius: 3,
           overflow: 'hidden',
+          position: 'relative',
           display: 'flex',
           flexDirection: 'column',
           transition: MARKETING_CARD_TRANSITION,
           ...(disc
             ? { border: '2px solid', borderColor: 'warning.main' }
-            : { borderLeft: '4px solid', borderLeftColor: 'secondary.main' }),
+            : {
+                border: '1px solid',
+                borderColor: 'divider',
+              }),
           boxShadow: MARKETING_CARD_SHADOW,
           bgcolor: '#fff',
         }}
       >
+        {!disc && <TariffLeftAccent />}
         <Box
           sx={{
             bgcolor: headerBg,
             color: '#fff',
-            pt: pop ? 4 : 2,
+            pt: pop ? 4 : 2.5,
             px: 2,
             pb: 0,
-            borderRadius: '24px 24px 0 0',
             textAlign: 'center',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            ...(pop && { transform: 'translateY(-8px)' }),
           }}
         >
           <Typography variant="h6" fontWeight={800} sx={{ mb: 1.5, lineHeight: 1.25 }}>
@@ -257,9 +250,9 @@ export function TariffPreviewPageStyle({ tariff }: { tariff: PreviewTariff }) {
               ₽/мес
             </Typography>
           </Box>
-          <HeaderWave />
+          <TariffHeaderWave />
         </Box>
-        <Box sx={{ flex: 1, bgcolor: '#fff', px: 2, py: 2 }}>
+        <Box sx={{ flex: 1, bgcolor: '#fff', px: 2, pt: 1.5, pb: 2 }}>
           {tariff.description?.trim() ? (
             <Box sx={{ mb: 1.5, p: 1, bgcolor: '#F9F9F9', borderRadius: 2, display: 'flex', gap: 1 }}>
               <InfoOutlinedIcon sx={{ color: accentColor === 'warning' ? 'warning.dark' : 'text.secondary', fontSize: 20 }} />

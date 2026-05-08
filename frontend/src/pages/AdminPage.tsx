@@ -40,7 +40,6 @@ import ScheduleClassForm, { scheduleSaveAllowed, validateScheduleForm } from '..
 import { buildPreviewTariffFromEdit, TariffPreviewHomeStyle, TariffPreviewPageStyle } from '../components/admin/TariffAdminPreviews'
 import { Link as RouterLink } from 'react-router-dom'
 import api from '../services/api'
-import { useAuth } from '../contexts/AuthContext'
 import toast from 'react-hot-toast'
 import { datetimeLocalToIso, normalizeAdminPayloadDates, toDatetimeLocalValue } from '../utils/dateTimeLocal'
 import PhoneTextField from '../components/PhoneTextField'
@@ -132,7 +131,6 @@ function aboutTextFromApiPayload(data: unknown): string {
 }
 
 export default function AdminPage() {
-  const { logout } = useAuth()
   const [activeTab, setActiveTab] = useState<TabType>('general')
   const [items, setItems] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
@@ -1015,8 +1013,8 @@ export default function AdminPage() {
         ))}
       </List>
       <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
-        <Button fullWidth variant="outlined" color="secondary" onClick={logout}>
-          Выйти
+        <Button fullWidth variant="contained" color="secondary" component={RouterLink} to="/">
+          На главную
         </Button>
       </Box>
     </Box>
@@ -1353,13 +1351,17 @@ export default function AdminPage() {
                 <>
                   <TextField
                     label="Логин"
+                    name="username"
+                    autoComplete="username"
                     value={editData.username || ''}
                     onChange={(e) => setEditData((p: any) => ({ ...p, username: e.target.value }))}
                     required
                   />
                   <TextField
                     label="Пароль"
+                    name="password"
                     type="password"
+                    autoComplete="new-password"
                     value={editData.password || ''}
                     onChange={(e) => setEditData((p: any) => ({ ...p, password: e.target.value }))}
                     required

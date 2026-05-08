@@ -146,11 +146,14 @@ function InstanceCard({
   onClick,
   booked,
   layout = 'absolute',
+  denseTrainer,
 }: {
   inst: ScheduleInstance
   onClick: () => void
   booked: boolean
   layout?: 'absolute' | 'stacked'
+  /** Узкая сетка на ПК: меньше блок тренера, чтобы не наезжал на низ карточки. */
+  denseTrainer?: boolean
 }) {
   const theme = useTheme()
   const isTrainer = inst.category !== 'other'
@@ -178,7 +181,7 @@ function InstanceCard({
         borderRadius: 2,
         bgcolor: isTrainer ? '#1a1a1a' : '#F5F5F5',
         color: isTrainer ? '#fff' : '#333',
-        p: 1.25,
+        p: denseTrainer ? 1 : 1.25,
         cursor: 'pointer',
         overflow: 'hidden',
         borderLeft: '3px solid',
@@ -218,11 +221,31 @@ function InstanceCard({
       <Typography variant="caption" display="block" sx={{ opacity: isTrainer ? 0.92 : 0.85, fontWeight: 600 }}>
         {pad2(start.getHours())}:{pad2(start.getMinutes())}–{pad2(end.getHours())}:{pad2(end.getMinutes())}
       </Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.35 }}>
-        <Avatar src={inst.trainer?.avatar || undefined} sx={{ width: 22, height: 22, fontSize: 11 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: denseTrainer ? 0.5 : 0.75,
+          mt: denseTrainer ? 0.25 : 0.35,
+        }}
+      >
+        <Avatar
+          src={inst.trainer?.avatar || undefined}
+          sx={{ width: denseTrainer ? 15 : 22, height: denseTrainer ? 15 : 22, fontSize: denseTrainer ? 8 : 11 }}
+        >
           {(inst.trainer?.name || '?').slice(0, 1)}
         </Avatar>
-        <Typography variant="caption" sx={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <Typography
+          variant="caption"
+          sx={{
+            flex: 1,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            fontSize: denseTrainer ? '0.6rem' : undefined,
+            lineHeight: 1.15,
+          }}
+        >
           {inst.trainer?.name || '—'}
         </Typography>
       </Box>
@@ -443,6 +466,7 @@ export default function WeekSchedule({
                         booked={bookingKeySet.has(bk)}
                         onClick={() => onInstanceClick(inst)}
                         layout="absolute"
+                        denseTrainer
                       />
                     </Box>
                   )

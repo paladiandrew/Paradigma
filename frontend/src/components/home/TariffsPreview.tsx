@@ -1,17 +1,20 @@
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import { Box, Button, Card, Skeleton, Typography, useMediaQuery, useTheme } from '@mui/material'
-import Grid from '@mui/material/GridLegacy'
+import Grid from '@mui/material/Grid'
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import api from '../../services/api'
 import MobileLoopCarousel from '../common/MobileLoopCarousel'
 import RevealWrapper from '../common/RevealWrapper'
 import SectionTitle from './SectionTitle'
+import TariffHeaderWave from '../tariffs/TariffHeaderWave'
+import TariffLeftAccent from '../tariffs/TariffLeftAccent'
 import {
   MARKETING_CARD_SHADOW,
   MARKETING_CARD_SHADOW_HOVER,
   MARKETING_CARD_TRANSITION,
 } from '../../styles/marketingCards'
+import { isDiscountCalendarDateStillValid } from '../../utils/formatDates'
 
 type Tariff = {
   id: string
@@ -41,37 +44,12 @@ function normalizeTariffFromApi(raw: Record<string, unknown>): Tariff {
 function discountActive(t: Tariff): boolean {
   const p = t.discount_percent || 0
   if (p <= 0) return false
-  if (!t.discount_until) return true
-  return new Date(t.discount_until).getTime() > Date.now()
+  return isDiscountCalendarDateStillValid(t.discount_until)
 }
 
 function effectivePrice(t: Tariff): number {
   if (!discountActive(t)) return t.price
   return Math.max(0, Math.round((t.price * (100 - (t.discount_percent || 0))) / 100))
-}
-
-function HeaderWave() {
-  return (
-    <Box
-      sx={{
-        width: '100%',
-        mt: 1,
-        lineHeight: 0,
-        flexShrink: 0,
-        alignSelf: 'stretch',
-        mb: '-3px',
-      }}
-    >
-      <Box
-        component="svg"
-        viewBox="0 0 400 32"
-        preserveAspectRatio="none"
-        sx={{ display: 'block', width: '100%', height: 28, verticalAlign: 'bottom' }}
-      >
-        <path fill="#ffffff" d="M0,12 Q100,28 200,14 T400,12 L400,32 L0,32 Z" />
-      </Box>
-    </Box>
-  )
 }
 
 function TariffPreviewCard({ tariff }: { tariff: Tariff }) {
@@ -86,7 +64,7 @@ function TariffPreviewCard({ tariff }: { tariff: Tariff }) {
       sx={{
         position: 'relative',
         height: '100%',
-        pt: showRecommend ? 2.5 : 0,
+        pt: 2.5,
       }}
     >
       {showRecommend && (
@@ -119,8 +97,12 @@ function TariffPreviewCard({ tariff }: { tariff: Tariff }) {
           borderRadius: 3,
           overflow: 'hidden',
           position: 'relative',
-          border: '1px solid',
-          borderColor: disc ? 'warning.main' : 'secondary.main',
+          ...(disc
+            ? { border: '2px solid', borderColor: 'warning.main' }
+            : {
+                border: '1px solid',
+                borderColor: 'divider',
+              }),
           boxShadow: MARKETING_CARD_SHADOW,
           bgcolor: '#fff',
           display: 'flex',
@@ -132,6 +114,7 @@ function TariffPreviewCard({ tariff }: { tariff: Tariff }) {
           },
         }}
       >
+      {!disc && <TariffLeftAccent />}
       {disc && (
         <Box
           sx={{
@@ -174,12 +157,6 @@ function TariffPreviewCard({ tariff }: { tariff: Tariff }) {
           alignItems: 'center',
           textAlign: 'center',
           position: 'relative',
-          borderRadius: '24px 24px 0 0',
-          ...(showRecommend && {
-            transform: 'translateY(-8px)',
-            /* Иначе под волной остаётся полоса фона шапки: transform не уменьшает высоту во flex. */
-            marginBottom: '-8px',
-          }),
         }}
       >
         <Typography variant="h5" fontWeight={800} sx={{ mb: 1.5, lineHeight: 1.25 }}>
@@ -196,7 +173,7 @@ function TariffPreviewCard({ tariff }: { tariff: Tariff }) {
         <Typography variant="body2" sx={{ color: disc ? 'rgba(255,255,255,0.85)' : 'grey.400', mt: 0.5 }}>
           ₽/мес
         </Typography>
-        <HeaderWave />
+        <TariffHeaderWave />
       </Box>
 
       <Box
@@ -204,7 +181,7 @@ function TariffPreviewCard({ tariff }: { tariff: Tariff }) {
           flex: 1,
           bgcolor: '#fff',
           px: 3,
-          pt: 2,
+          pt: 1.25,
           pb: 2,
           display: 'flex',
           flexDirection: 'column',
@@ -295,7 +272,7 @@ export default function TariffsPreview() {
       {loading && !isMobileCarousel && (
         <Grid container spacing={3} sx={{ maxWidth: 1200, mx: 'auto', justifyContent: 'center' }}>
           {[1, 2, 3].map((item) => (
-            <Grid item xs={12} sm={6} md={4} key={item}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item}>
               <Skeleton variant="rounded" height={500} sx={{ borderRadius: 3 }} />
             </Grid>
           ))}
@@ -313,7 +290,7 @@ export default function TariffsPreview() {
       {!loading && !isMobileCarousel && (
         <Grid container spacing={3} sx={{ maxWidth: 1200, mx: 'auto', justifyContent: 'center' }}>
           {tariffs.map((tariff, i) => (
-            <Grid item xs={12} sm={6} md={4} key={tariff.id}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={tariff.id}>
               <RevealWrapper threshold={0.08} delayMs={(i % 3) * 100}>
                 <TariffPreviewCard tariff={tariff} />
               </RevealWrapper>

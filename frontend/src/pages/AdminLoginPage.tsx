@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -16,6 +16,17 @@ import { adminLogin } from '../store/authSlice'
 import { getApiErrorMessage } from '../services/api'
 
 export default function AdminLoginPage() {
+  useEffect(() => {
+    const robots = document.createElement('meta')
+    robots.name = 'robots'
+    robots.content = 'noindex, nofollow'
+    robots.setAttribute('data-paradigma', 'auth')
+    document.head.appendChild(robots)
+    return () => {
+      robots.remove()
+    }
+  }, [])
+
   const [loginData, setLoginData] = useState({ login: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -53,6 +64,8 @@ export default function AdminLoginPage() {
           <Box component="form" onSubmit={handleLogin}>
             <TextField
               label="Логин"
+              name="username"
+              autoComplete="username"
               fullWidth
               margin="normal"
               value={loginData.login}
@@ -61,7 +74,9 @@ export default function AdminLoginPage() {
             />
             <TextField
               label="Пароль"
+              name="password"
               type="password"
+              autoComplete="current-password"
               fullWidth
               margin="normal"
               value={loginData.password}

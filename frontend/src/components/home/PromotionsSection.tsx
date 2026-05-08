@@ -1,11 +1,12 @@
 import { Box, Button, Card, CardContent, Chip, Container, Link as MuiLink, Skeleton, Typography, useMediaQuery, useTheme } from '@mui/material'
-import Grid from '@mui/material/GridLegacy'
+import Grid from '@mui/material/Grid'
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import api from '../../services/api'
 import MobileLoopCarousel from '../common/MobileLoopCarousel'
 import RevealWrapper from '../common/RevealWrapper'
 import SectionTitle from './SectionTitle'
+import { formatRuCalendarDate, isDiscountCalendarDateStillValid } from '../../utils/formatDates'
 
 type Promotion = {
   id: string
@@ -17,8 +18,7 @@ type Promotion = {
 }
 
 function PromotionCard({ promo, highlight }: { promo: Promotion; highlight: boolean }) {
-  const end = promo.endDate ? new Date(promo.endDate) : null
-  const active = !end || end.getTime() >= Date.now()
+  const active = !promo.endDate || isDiscountCalendarDateStillValid(promo.endDate)
   return (
     <Card
       elevation={0}
@@ -79,7 +79,7 @@ function PromotionCard({ promo, highlight }: { promo: Promotion; highlight: bool
           />
           {promo.endDate && (
             <Typography variant="caption" color="text.secondary" fontWeight={600}>
-              {active ? `до ${end!.toLocaleDateString('ru-RU')}` : 'завершена'}
+              {active ? `до ${formatRuCalendarDate(promo.endDate)}` : 'завершена'}
             </Typography>
           )}
         </Box>
@@ -136,7 +136,7 @@ export default function PromotionsSection() {
           date: e.date,
           endDate: e.endDate,
         }))
-        setPromos(mapped.filter((p) => !p.endDate || new Date(p.endDate).getTime() >= Date.now()))
+        setPromos(mapped.filter((p) => !p.endDate || isDiscountCalendarDateStillValid(p.endDate)))
       })
       .finally(() => setLoading(false))
   }, [])
@@ -167,7 +167,7 @@ export default function PromotionsSection() {
         {loading && !isNarrow && (
           <Grid container spacing={4}>
             {[1, 2].map((i) => (
-              <Grid item xs={12} md={6} key={i}>
+              <Grid size={{ xs: 12, md: 6 }} key={i}>
                 <Skeleton variant="rounded" height={400} sx={{ borderRadius: 4 }} />
               </Grid>
             ))}
@@ -187,7 +187,7 @@ export default function PromotionsSection() {
         {!loading && !isNarrow && (
           <Grid container spacing={4}>
             {promos.map((p, i) => (
-              <Grid item xs={12} md={6} key={p.id}>
+              <Grid size={{ xs: 12, md: 6 }} key={p.id}>
                 <RevealWrapper threshold={0.12} delayMs={i * 100}>
                   <PromotionCard promo={p} highlight={i === 0} />
                 </RevealWrapper>

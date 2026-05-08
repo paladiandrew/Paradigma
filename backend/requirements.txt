@@ -1,8 +1,10 @@
 fastapi==0.109.0
 uvicorn[standard]==0.27.0
 python-multipart==0.0.6
-pydantic==2.5.3
-pydantic-settings==2.1.0
+# pydantic 2.5.x + старый pydantic-core без колёс под Python 3.14 на Windows ломает импорт;
+# для 3.14 нужны более свежие версии (или Python 3.11/3.12).
+pydantic>=2.10,<3
+pydantic-settings>=2.1,<3
 email-validator==2.1.0.post1
 motor==3.3.2
 beanie==1.23.6

@@ -19,7 +19,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import Grid from '@mui/material/GridLegacy'
+import Grid from '@mui/material/Grid'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import { Link as RouterLink } from 'react-router-dom'
@@ -28,6 +28,7 @@ import { getApiErrorMessage } from '../services/api'
 import api from '../services/api'
 import PhoneTextField from '../components/PhoneTextField'
 import { displayRuPhoneFromStored, ruPhoneToApi } from '../utils/ruPhoneFormat'
+import { formatRuCalendarShort, parseApiCalendarDate, dateInputToIsoNoon } from '../utils/formatDates'
 import { TrainerCabinet } from './TrainerPanelPage'
 
 type SubOverview = {
@@ -59,9 +60,8 @@ function initials(first: string, last: string) {
 }
 
 function ageFromBirth(iso: string | null | undefined): string | null {
-  if (!iso) return null
-  const b = new Date(iso)
-  if (Number.isNaN(b.getTime())) return null
+  const b = parseApiCalendarDate(iso || null)
+  if (!b) return null
   const diff = Date.now() - b.getTime()
   const y = Math.floor(diff / (365.25 * 24 * 3600 * 1000))
   return `${y} лет`
@@ -206,7 +206,7 @@ export default function ProfilePage() {
       first_name: spForm.first_name,
       last_name: spForm.last_name,
       phone: spForm.phone || undefined,
-      birth_date: spForm.birth_date ? new Date(spForm.birth_date).toISOString() : undefined,
+      birth_date: dateInputToIsoNoon(spForm.birth_date),
     })
     setSpDialog(false)
     setSpForm({ first_name: '', last_name: '', phone: '', birth_date: '' })
@@ -219,7 +219,7 @@ export default function ProfilePage() {
       first_name: spForm.first_name,
       last_name: spForm.last_name,
       phone: spForm.phone || undefined,
-      birth_date: spForm.birth_date ? new Date(spForm.birth_date).toISOString() : undefined,
+      birth_date: dateInputToIsoNoon(spForm.birth_date),
     })
     setEditSp(null)
     loadSubProfiles()
@@ -329,7 +329,7 @@ export default function ProfilePage() {
                   {s.tariff?.name || 'Тариф'}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" display="block">
-                  До {s.end_date ? new Date(s.end_date).toLocaleDateString('ru-RU') : '—'}
+                  До {s.end_date ? formatRuCalendarShort(s.end_date) : '—'}
                 </Typography>
                 {s.remaining_trainings != null && (
                   <Box sx={{ mt: 1 }}>
@@ -414,7 +414,7 @@ export default function ProfilePage() {
                       <Typography variant="body2" sx={{ mt: 1 }}>
                         Абонемент: <strong>{linked.tariff?.name}</strong>
                         <br />
-                        до {linked.end_date ? new Date(linked.end_date).toLocaleDateString('ru-RU') : '—'} · осталось:{' '}
+                        до {linked.end_date ? formatRuCalendarShort(linked.end_date) : '—'} · осталось:{' '}
                         {linked.remaining_trainings ?? '—'}
                       </Typography>
                     ) : (
@@ -466,7 +466,7 @@ export default function ProfilePage() {
 
   return (
     <Container sx={{ py: { xs: 3, md: 6 }, maxWidth: 1200 }}>
-      <Typography variant="h4" fontWeight={800} sx={{ mb: 3 }}>
+      <Typography variant="h4" fontWeight={800} sx={{ mb: 3, textAlign: 'center', width: '100%' }}>
         Профиль
       </Typography>
       {error && (
@@ -475,17 +475,73 @@ export default function ProfilePage() {
         </Alert>
       )}
       <Grid container spacing={3}>
-        <Grid item xs={12} md={user.role === 'admin' ? 12 : 5}>
+        <Grid size={{ xs: 12, md: user.role === 'admin' ? 12 : 5 }}>
           {profileColumn}
         </Grid>
         {user.role !== 'admin' && (
-          <Grid item xs={12} md={7}>
+          <Grid size={{ xs: 12, md: 7 }}>
             {subsColumn}
             <Divider sx={{ my: 3 }} />
             {childrenSection}
           </Grid>
         )}
       </Grid>
+
+      {user.role === 'admin' && (
+        <Box
+          sx={{
+            width: '100vw',
+            maxWidth: '100%',
+            position: 'relative',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            boxSizing: 'border-box',
+            px: { xs: 2, sm: 3 },
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            justifyContent: { xs: 'center', md: 'flex-end' },
+            flexWrap: 'nowrap',
+            alignItems: { xs: 'stretch', md: 'center' },
+            gap: 2,
+            mt: { xs: 3, md: 4 },
+            mb: 1,
+          }}
+        >
+          <Button
+            component={RouterLink}
+            to="/admin"
+            variant="outlined"
+            color="primary"
+            sx={{
+              width: { xs: '100%', md: 'auto' },
+              maxWidth: { xs: 440, md: 'none' },
+              flex: { md: '0 0 auto' },
+              py: 1.5,
+              fontWeight: 600,
+              borderWidth: 2,
+              '&:hover': { borderWidth: 2 },
+            }}
+          >
+            Панель администратора
+          </Button>
+          <Button
+            variant="outlined"
+            color="error"
+            sx={{
+              width: { xs: '100%', md: 'auto' },
+              maxWidth: { xs: 440, md: 'none' },
+              flex: { md: '0 0 auto' },
+              py: 1.5,
+              fontWeight: 600,
+              borderWidth: 2,
+              '&:hover': { borderWidth: 2 },
+            }}
+            onClick={() => void logout().then(() => navigate('/'))}
+          >
+            Выйти из профиля
+          </Button>
+        </Box>
+      )}
 
       {user.role !== 'admin' && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
@@ -502,9 +558,30 @@ export default function ProfilePage() {
       <Dialog open={passwordDialog} onClose={() => setPasswordDialog(false)} fullWidth maxWidth="xs">
         <DialogTitle>Смена пароля</DialogTitle>
         <DialogContent sx={{ display: 'grid', gap: 2, pt: 2 }}>
-          <TextField label="Текущий" type="password" value={password.old} onChange={(e) => setPassword((v) => ({ ...v, old: e.target.value }))} />
-          <TextField label="Новый" type="password" value={password.next} onChange={(e) => setPassword((v) => ({ ...v, next: e.target.value }))} />
-          <TextField label="Подтверждение" type="password" value={password.confirm} onChange={(e) => setPassword((v) => ({ ...v, confirm: e.target.value }))} />
+          <TextField
+            label="Текущий пароль"
+            type="password"
+            autoComplete="current-password"
+            name="current-password"
+            value={password.old}
+            onChange={(e) => setPassword((v) => ({ ...v, old: e.target.value }))}
+          />
+          <TextField
+            label="Новый пароль"
+            type="password"
+            autoComplete="new-password"
+            name="new-password"
+            value={password.next}
+            onChange={(e) => setPassword((v) => ({ ...v, next: e.target.value }))}
+          />
+          <TextField
+            label="Подтверждение"
+            type="password"
+            autoComplete="new-password"
+            name="new-password-confirm"
+            value={password.confirm}
+            onChange={(e) => setPassword((v) => ({ ...v, confirm: e.target.value }))}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setPasswordDialog(false)}>Отмена</Button>
@@ -515,7 +592,7 @@ export default function ProfilePage() {
       </Dialog>
 
       <Dialog open={spDialog} onClose={() => setSpDialog(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Новый подпрофиль</DialogTitle>
+        <DialogTitle>Новый связанный профиль</DialogTitle>
         <DialogContent sx={{ display: 'grid', gap: 2, pt: 2 }}>
           <TextField label="Имя *" value={spForm.first_name} onChange={(e) => setSpForm((f) => ({ ...f, first_name: e.target.value }))} />
           <TextField label="Фамилия *" value={spForm.last_name} onChange={(e) => setSpForm((f) => ({ ...f, last_name: e.target.value }))} />
@@ -559,7 +636,7 @@ export default function ProfilePage() {
       </Dialog>
 
       <Dialog open={Boolean(deleteSp)} onClose={() => setDeleteSp(null)}>
-        <DialogTitle>Удалить подпрофиль?</DialogTitle>
+        <DialogTitle>Удалить связанный профиль?</DialogTitle>
         <DialogActions>
           <Button onClick={() => setDeleteSp(null)}>Отмена</Button>
           <Button color="error" variant="contained" onClick={doDeleteSp}>

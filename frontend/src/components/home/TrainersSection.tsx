@@ -1,7 +1,7 @@
 import BoltIcon from '@mui/icons-material/Bolt'
 import { Box, Card, Chip, Divider, Skeleton, Typography, useMediaQuery, useTheme } from '@mui/material'
 import { alpha } from '@mui/material/styles'
-import Grid from '@mui/material/GridLegacy'
+import Grid from '@mui/material/Grid'
 import { useEffect, useState } from 'react'
 import api from '../../services/api'
 import MobileLoopCarousel from '../common/MobileLoopCarousel'
@@ -238,7 +238,7 @@ export default function TrainersSection() {
       {loading && !isMobileCarousel && (
         <Grid container spacing={3} sx={{ maxWidth: 1200, mx: 'auto', justifyContent: 'center' }}>
           {[1, 2, 3].map((item) => (
-            <Grid item xs={12} sm={6} md={4} key={item}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item}>
               <Skeleton variant="rounded" height={520} sx={{ borderRadius: 3 }} />
             </Grid>
           ))}
@@ -256,7 +256,7 @@ export default function TrainersSection() {
       {!loading && !isMobileCarousel && (
         <Grid container spacing={3} sx={{ maxWidth: 1200, mx: 'auto', justifyContent: 'center' }}>
           {trainers.map((trainer, i) => (
-            <Grid item xs={12} sm={6} md={4} key={trainer.id}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={trainer.id}>
               <RevealWrapper threshold={0.08} delayMs={(i % 3) * 100}>
                 <TrainerCard trainer={trainer} />
               </RevealWrapper>

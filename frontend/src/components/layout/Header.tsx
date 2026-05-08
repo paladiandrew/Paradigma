@@ -69,11 +69,6 @@ export default function Header() {
           ))}
           {isAuthenticated ? (
             <>
-              {user?.role === 'admin' && (
-                <Button component={Link} to="/admin" sx={{ ml: 2 }}>
-                  Админ
-                </Button>
-              )}
               <Button component={Link} to="/profile" variant="contained" color="secondary" sx={{ ml: 2 }}>
                 {user?.role === 'trainer' ? 'Профиль тренера' : 'Профиль'}
               </Button>

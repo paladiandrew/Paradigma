@@ -7,7 +7,7 @@ import {
   Chip,
   Link,
 } from '@mui/material'
-import Grid from '@mui/material/GridLegacy'
+import Grid from '@mui/material/Grid'
 
 export default function AboutPage() {
   return (
@@ -42,7 +42,7 @@ export default function AboutPage() {
           Новости и акции
         </Typography>
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent>
                 <Chip label="Акция" color="secondary" sx={{ mb: 2 }} />
@@ -60,7 +60,7 @@ export default function AboutPage() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent>
                 <Chip label="Новость" color="secondary" sx={{ mb: 2 }} />
@@ -86,7 +86,7 @@ export default function AboutPage() {
           Контакты
         </Typography>
         <Grid container spacing={4}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
@@ -102,7 +102,7 @@ export default function AboutPage() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>

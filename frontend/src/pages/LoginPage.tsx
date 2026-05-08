@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Box,
@@ -20,6 +20,17 @@ import PhoneTextField from '../components/PhoneTextField'
 import { ruPhoneToApi } from '../utils/ruPhoneFormat'
 
 export default function LoginPage() {
+  useEffect(() => {
+    const robots = document.createElement('meta')
+    robots.name = 'robots'
+    robots.content = 'noindex, nofollow'
+    robots.setAttribute('data-paradigma', 'auth')
+    document.head.appendChild(robots)
+    return () => {
+      robots.remove()
+    }
+  }, [])
+
   const [tab, setTab] = useState(0)
   const [loginData, setLoginData] = useState(() => ({
     login: loadSavedLogin(),
@@ -120,6 +131,7 @@ export default function LoginPage() {
             <Box component="form" onSubmit={handleLogin}>
               <TextField
                 label="Логин"
+                name="username"
                 autoComplete="username"
                 fullWidth
                 margin="normal"
@@ -130,6 +142,7 @@ export default function LoginPage() {
               />
               <TextField
                 label="Пароль"
+                name="password"
                 type="password"
                 autoComplete="current-password"
                 fullWidth
@@ -154,6 +167,8 @@ export default function LoginPage() {
             <Box component="form" onSubmit={handleRegister}>
               <TextField
                 label="Логин"
+                name="username"
+                autoComplete="username"
                 fullWidth
                 margin="normal"
                 value={registerData.username}
@@ -194,7 +209,9 @@ export default function LoginPage() {
               />
               <TextField
                 label="Пароль"
+                name="password"
                 type="password"
+                autoComplete="new-password"
                 fullWidth
                 margin="normal"
                 value={registerData.password}
@@ -203,7 +220,9 @@ export default function LoginPage() {
               />
               <TextField
                 label="Подтверждение пароля"
+                name="password_confirm"
                 type="password"
+                autoComplete="new-password"
                 fullWidth
                 margin="normal"
                 value={registerData.passwordConfirm}
